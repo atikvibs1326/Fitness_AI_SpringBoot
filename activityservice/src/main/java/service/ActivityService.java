@@ -7,6 +7,9 @@ import dto.ActivityResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ActivityService {
@@ -24,7 +27,8 @@ public class ActivityService {
                 .build();
 
         Activity savedActivity = activityRepository.save(activity);
-        return mapToResponse(activity);
+        return mapToResponse(savedActivity);
+
     }
 
     private ActivityResponse mapToResponse(Activity activity){
@@ -34,11 +38,25 @@ public class ActivityService {
         response.setType(activity.getType());
         response.setDuration(activity.getDuration());
         response.setCaloriesBurned(activity.getCaloriesBurned());
-        response.setStartTime(response.getStartTime());
-        response.setAdditionalMetrics(response.getAdditionalMetrics());
-        response.setCreatedAt(response.getCreatedAt());
-        response.setUpdatedAt(response.getUpdatedAt());
+        response.setStartTime(activity.getStartTime());
+        response.setAdditionalMetrics(activity.getAdditionalMetrics());
+        response.setCreatedAt(activity.getCreatedAt());
+        response.setUpdatedAt(activity.getUpdatedAt());
 
         return  response;
+    }
+
+    public List<ActivityResponse> getUserActivities(String userId) {
+       List<Activity> activities = activityRepository.findByUserId(userId);
+       return activities.stream()
+               .map(this::mapToResponse)
+               .collect(Collectors.toList());
+    }
+
+    public ActivityResponse getActivityById(String activityId) {
+        return activityRepository.findById(activityId)
+                .map(this::mapToResponse)
+                .orElseThrow(()-> new RuntimeException("activity not found with id: "+ activityId));
+
     }
 }
